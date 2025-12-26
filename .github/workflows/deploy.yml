@@ -23,7 +23,7 @@ jobs:
 
     - run: flutter pub get
 
-    - run: flutter build web --release --base-href "/WallFlow/" --web-renderer canvaskit
+    - run: flutter build web --release --base-href "/WallFlow/" 
 
     - uses: actions/configure-pages@v5
 
