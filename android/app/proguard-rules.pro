@@ -1,0 +1,7 @@
+-dontwarn javax.annotation.**
+-keep class javax.annotation.** { *; }
+-dontwarn javax.annotation.Nullable
+-dontwarn javax.annotation.Nonnull
+-dontwarn javax.annotation.ParametersAreNonnullByDefault
+-dontwarn javax.annotation.concurrent.**
+-dontwarn javax.annotation.meta.**
