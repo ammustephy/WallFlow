@@ -18,12 +18,12 @@ jobs:
 
     - uses: subosito/flutter-action@v2
       with:
-        flutter-version: 3.24.3  # Run `flutter --version` to confirm yours
+        flutter-version: 3.24.3  # Your version from flutter --version
         channel: stable
 
     - run: flutter pub get
 
-    - run: flutter build web --release --base-href "/WallFlow/" --web-renderer canvaskit
+    - run: flutter build web --release --base-href "/WallFlow/"  # CanvasKit default
 
     - uses: actions/configure-pages@v5
 
