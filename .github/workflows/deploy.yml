@@ -18,7 +18,6 @@ jobs:
 
     - uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.40.0'  # Your version from flutter --version
         channel: stable
 
     - run: flutter pub get
@@ -40,3 +39,4 @@ jobs:
     steps:
     - id: deployment
       uses: actions/deploy-pages@v4
+
