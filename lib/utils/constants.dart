@@ -7,6 +7,6 @@ class Constants {
 
   // FOR DIFFERENT NETWORKS: Use ngrok (e.g., 'https://abcd-123.ngrok-free.app')
   // FOR SAME WI-FI: Use http://192.168.1.35:3000
-  static const String baseUrl =
-      'https://overbounteously-nonpopular-carmel.ngrok-free.dev';
+  static const String baseUrl = 'https://wallflow-backend.onrender.com';
+  // 'https://overbounteously-nonpopular-carmel.ngrok-free.dev';
 }
