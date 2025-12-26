@@ -1,9 +1,9 @@
-name: Deploy WallFlow Web to Pages
+name: Deploy WallFlow Web
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:  # Manual run button
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,26 +14,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
+    - uses: subosito/flutter-action@v2
       with:
-        flutter-version: 3.24.3  # Run `flutter --version` locally to match
+        flutter-version: 3.24.3  # Run `flutter --version` to confirm yours
         channel: stable
 
-    - name: Install deps
-      run: flutter pub get
+    - run: flutter pub get
 
-    - name: Build web
-      run: flutter build web --release --base-href "/WallFlow/" --web-renderer canvaskit
+    - run: flutter build web --release --base-href "/WallFlow/" --web-renderer canvaskit
 
-    - name: Setup Pages
-      uses: actions/configure-pages@v5
+    - uses: actions/configure-pages@v5
 
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
+    - uses: actions/upload-pages-artifact@v3
       with:
         path: build/web
 
@@ -44,6 +38,5 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    - name: Deploy
-      id: deployment
+    - id: deployment
       uses: actions/deploy-pages@v4
