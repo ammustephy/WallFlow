@@ -26,24 +26,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final success = await Provider.of<AuthProvider>(
-      context,
-      listen: false,
-    ).register(_emailController.text, _passwordController.text);
-
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Account created! Sign in to continue.'),
-          backgroundColor: AppTheme.accentColor,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      Navigator.pop(context);
-    } else if (mounted) {
-      ScaffoldMessenger.of(
+    try {
+      final success = await Provider.of<AuthProvider>(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Registration failed.')));
+        listen: false,
+      ).register(_emailController.text, _passwordController.text);
+
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Account created! Sign in to continue.'),
+            backgroundColor: AppTheme.accentColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (error) {
+      if (mounted) {
+        // Extract message from Exception objects
+        String message = error.toString().replaceAll('Exception: ', '');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Registration failed: $message')),
+        );
+      }
     }
   }
 

@@ -108,11 +108,15 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    bool success = await _authService.register(email, password);
-
-    _isLoading = false;
-    notifyListeners();
-    return success;
+    try {
+      bool success = await _authService.register(email, password);
+      return success;
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<bool> socialLogin(String platform) async {

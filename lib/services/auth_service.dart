@@ -62,7 +62,7 @@ class AuthService {
             headers: _headers,
             body: jsonEncode({'email': normalizedEmail, 'password': password}),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -111,23 +111,32 @@ class AuthService {
     final normalizedEmail = email.trim().toLowerCase();
     final url = '${Constants.baseUrl}/registration';
     try {
+      print('DEBUG: Attempting registration to $url');
       final response = await http
           .post(
             Uri.parse(url),
             headers: _headers,
             body: jsonEncode({'email': normalizedEmail, 'password': password}),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
+
+      print(
+        'DEBUG: Registration Response: ${response.statusCode} - ${response.body}',
+      );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return data['status'] == true;
+      } else {
+        final data = jsonDecode(response.body);
+        throw Exception(
+          data['message'] ?? data['error'] ?? 'Registration failed',
+        );
       }
     } catch (e) {
       print('DEBUG: Registration Error: $e');
-      throw Exception('Server Unreachable');
+      throw e; // Rethrow actual error
     }
-    return false;
   }
 
   Future<Map<String, dynamic>?> signInWithGoogle() async {
@@ -163,7 +172,7 @@ class AuthService {
               'displayName': displayName,
             }),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -209,7 +218,7 @@ class AuthService {
               'profilePicture': profilePicture,
             }),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
