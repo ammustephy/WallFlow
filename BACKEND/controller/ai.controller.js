@@ -6,6 +6,7 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
 
 // Generate wallpaper from text prompt
 exports.generateWallpaper = async (req, res) => {
+    console.log(`[AI] Start generation for: ${req.body.email}`);
     try {
         const { email, prompt } = req.body;
 
@@ -14,14 +15,18 @@ exports.generateWallpaper = async (req, res) => {
         }
 
         // Check if user is premium
-        const user = await UserModel.findOne({ email });
+        console.log(`[AI] Looking up user: ${email}`);
+        const user = await UserModel.findOne({ email }); // Removed invalid .timeout()
         if (!user) {
+            console.log(`[AI] User not found: ${email}`);
             return res.status(404).json({ message: 'User not found' });
         }
+        console.log(`[AI] User found. Premium: ${user.isPremium}`);
 
         // Backend Sync: Allow short prompts for free users (same as frontend)
         const freeLimit = 50;
         if (!user.isPremium && prompt.length > freeLimit) {
+            console.log(`[AI] Free tier exceeded for prompt length ${prompt.length}`);
             return res.status(403).json({
                 message: 'Premium subscription required for long prompts',
                 isFreeTierExceeded: true
@@ -30,23 +35,37 @@ exports.generateWallpaper = async (req, res) => {
 
         // Using Gemini to "enhance" or "validate" the prompt if key is available
         let enhancedPrompt = prompt;
-        try {
-            if (process.env.GOOGLE_GEMINI_API_KEY && process.env.GOOGLE_GEMINI_API_KEY !== 'your_gemini_api_key_here') {
+        if (process.env.GOOGLE_GEMINI_API_KEY &&
+            process.env.GOOGLE_GEMINI_API_KEY !== 'your_gemini_api_key_here' &&
+            process.env.GOOGLE_GEMINI_API_KEY.trim() !== '') {
+
+            console.log(`[AI] Enhancing prompt with Gemini...`);
+            try {
                 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
                 const enhancementPrompt = `As an AI wallpaper expert, refine this prompt into a highly detailed description for a stunning wallpaper: "${prompt}". Return ONLY the refined prompt text, no headers or meta-talk.`;
 
-                const result = await model.generateContent([enhancementPrompt]);
+                // Add a local timeout for the Gemini call
+                const geminiTask = model.generateContent([enhancementPrompt]);
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Gemini timeout')), 10000)
+                );
+
+                const result = await Promise.race([geminiTask, timeoutPromise]);
                 const response = await result.response;
                 enhancedPrompt = response.text().trim();
+                console.log(`[AI] Prompt enhanced successfully.`);
+            } catch (e) {
+                console.log(`[AI] Gemini enhancement failed/timed out: ${e.message}. Using original prompt.`);
             }
-        } catch (e) {
-            console.log('Gemini enhancement failed (probably invalid/missing key), falling back to original prompt');
+        } else {
+            console.log(`[AI] Skipping Gemini (no valid API key).`);
         }
 
         // For image generation, we use a service that turns the prompt into a real image
         // This ensures the user sees a valid wallpaper instead of text placeholder.
         const encodedPrompt = encodeURIComponent(enhancedPrompt);
         const imageUrl = `https://pollinations.ai/p/${encodedPrompt}?width=1080&height=1920&seed=${Math.floor(Math.random() * 1000000)}&nologo=true`;
+        console.log(`[AI] Image URL generated: ${imageUrl.substring(0, 50)}...`);
 
         // Save metadata to database
         const wallpaper = new GeneratedWallpaperModel({
@@ -63,7 +82,9 @@ exports.generateWallpaper = async (req, res) => {
             }
         });
 
+        console.log(`[AI] Saving wallpaper to DB...`);
         await wallpaper.save();
+        console.log(`[AI] Generation complete.`);
 
         res.json({
             success: true,
@@ -75,7 +96,7 @@ exports.generateWallpaper = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Generate wallpaper error:', error);
+        console.error('[AI] Fatal Error:', error);
         res.status(500).json({ message: 'Failed to generate wallpaper', error: error.message });
     }
 };
