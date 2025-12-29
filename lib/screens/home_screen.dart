@@ -1,14 +1,17 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../providers/wallpaper_provider.dart';
+import '../providers/subscription_provider.dart';
 import '../widgets/wallpaper_card.dart';
 import '../providers/auth_provider.dart';
 import '../utils/theme.dart';
 import 'profile_screen.dart';
 import 'collection_screen.dart';
+import 'ai_generator_screen.dart';
+import 'custom_creator_screen.dart';
+import 'subscription_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen>
   final _scrollController = ScrollController();
   final List<String> _categories = [
     'All',
+    'Premium',
     'Nature',
     'Travel',
     'Architecture',
@@ -105,6 +109,24 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: _buildDrawer(),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AiGeneratorScreen()),
+          );
+        },
+        backgroundColor: AppTheme.accentColor,
+        icon: const Icon(Icons.auto_awesome_rounded, color: Colors.white),
+        label: const Text(
+          'AI Generator',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1,
+          ),
+        ),
+      ),
       body: CustomScrollView(
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
@@ -236,10 +258,25 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Consumer<WallpaperProvider>(
       builder: (ctx, wpProvider, _) {
-        if (wpProvider.isLoading && wpProvider.wallpapers.isEmpty) {
+        final wallpapers = _selectedCategory == 'Premium'
+            ? wpProvider.wallpapers.where((w) => w.isPremium).toList()
+            : wpProvider.wallpapers;
+
+        if (wpProvider.isLoading && wallpapers.isEmpty) {
           return const SliverFillRemaining(
             child: Center(
               child: CircularProgressIndicator(color: AppTheme.accentColor),
+            ),
+          );
+        }
+
+        if (wallpapers.isEmpty) {
+          return const SliverFillRemaining(
+            child: Center(
+              child: Text(
+                'No wallpapers found in this category',
+                style: TextStyle(color: Colors.white54),
+              ),
             ),
           );
         }
@@ -250,9 +287,9 @@ class _HomeScreenState extends State<HomeScreen>
             crossAxisCount: crossAxisCount,
             mainAxisSpacing: 16,
             crossAxisSpacing: 16,
-            childCount: wpProvider.wallpapers.length,
+            childCount: wallpapers.length,
             itemBuilder: (context, index) {
-              return WallpaperCard(wallpaper: wpProvider.wallpapers[index]);
+              return WallpaperCard(wallpaper: wallpapers[index]);
             },
           ),
         );
@@ -263,7 +300,8 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildDrawer() {
     return Drawer(
       backgroundColor: AppTheme.darkBg,
-      child: Column(
+      child: ListView(
+        padding: EdgeInsets.zero,
         children: [
           Consumer<AuthProvider>(
             builder: (ctx, auth, _) => Container(
@@ -383,6 +421,120 @@ class _HomeScreenState extends State<HomeScreen>
             title: const Text('Recent'),
             onTap: () => Navigator.pop(context),
           ),
+
+          // Premium Features Section
+          const Divider(color: Colors.white10, height: 40),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.workspace_premium_rounded,
+                  color: AppTheme.accentColor,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Premium Features',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.accentColor,
+                  ),
+                ),
+                const Spacer(),
+                Consumer<SubscriptionProvider>(
+                  builder: (ctx, subscription, _) {
+                    if (subscription.isPremium) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.accentColor.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'ACTIVE',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.accentColor,
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: const Icon(
+              Icons.auto_awesome_rounded,
+              color: AppTheme.accentColor,
+            ),
+            title: const Text('AI Generator'),
+            trailing: Consumer<SubscriptionProvider>(
+              builder: (ctx, subscription, _) {
+                if (!subscription.isPremium) {
+                  return const Icon(
+                    Icons.lock_rounded,
+                    size: 18,
+                    color: Colors.white24,
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AiGeneratorScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.edit_rounded, color: Colors.purpleAccent),
+            title: const Text('Custom Creator'),
+            trailing: Consumer<SubscriptionProvider>(
+              builder: (ctx, subscription, _) {
+                if (!subscription.isPremium) {
+                  return const Icon(
+                    Icons.lock_rounded,
+                    size: 18,
+                    color: Colors.white24,
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CustomCreatorScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(
+              Icons.workspace_premium_rounded,
+              color: Colors.amber,
+            ),
+            title: const Text('Premium'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+              );
+            },
+          ),
+
           const Divider(color: Colors.white10, height: 40),
           ListTile(
             leading: const Icon(

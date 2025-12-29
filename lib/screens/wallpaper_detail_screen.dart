@@ -12,6 +12,8 @@ import '../utils/theme.dart';
 
 import 'package:provider/provider.dart';
 import '../providers/user_collections_provider.dart';
+import '../providers/subscription_provider.dart';
+import '../widgets/premium_paywall_dialog.dart';
 
 class WallpaperDetailScreen extends StatefulWidget {
   final Wallpaper wallpaper;
@@ -116,15 +118,36 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
     );
   }
 
+  bool _checkPremiumAccess() {
+    final subscription = Provider.of<SubscriptionProvider>(
+      context,
+      listen: false,
+    );
+    if (widget.wallpaper.isPremium && !subscription.isPremium) {
+      PremiumPaywallDialog.show(
+        context,
+        featureName: 'Premium Wallpaper',
+        featureDescription:
+            'This is a premium wallpaper. Upgrade to WallFlow Premium to download and set it as your wallpaper.',
+      );
+      return false;
+    }
+    return true;
+  }
+
   void _showSetOptions() {
+    if (!_checkPremiumAccess()) return;
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
       builder: (context) {
         return Container(
+          margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(24),
+          ),
           padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -133,6 +156,7 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
                 'Set Wallpaper',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
+              const SizedBox(height: 10),
               ListTile(
                 title: const Text('Home Screen'),
                 onTap: () {
@@ -171,14 +195,18 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
   }
 
   void _showDownloadOptions() {
+    if (!_checkPremiumAccess()) return;
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
       builder: (context) {
         return Container(
+          margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(24),
+          ),
           padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -187,6 +215,7 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
                 'Select Quality',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
+              const SizedBox(height: 10),
               ListTile(
                 title: const Text('Small (Quick)'),
                 onTap: () {
@@ -277,6 +306,8 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
               children: [
                 Text(
                   widget.wallpaper.altDescription.toUpperCase(),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,

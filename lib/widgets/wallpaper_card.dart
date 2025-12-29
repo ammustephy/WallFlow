@@ -72,6 +72,30 @@ class WallpaperCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Premium Badge
+                if (wallpaper.isPremium)
+                  Positioned(
+                    top: 6,
+                    left: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(4),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.workspace_premium_rounded,
+                        size: 10,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
                 Positioned(
                   top: 8,
                   right: 8,
@@ -82,7 +106,7 @@ class WallpaperCard extends StatelessWidget {
                         onTap: () => provider.toggleFavorite(wallpaper),
                         child: Container(
                           padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: Colors.black26,
                             shape: BoxShape.circle,
                           ),

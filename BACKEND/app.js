@@ -1,6 +1,9 @@
 const express = require("express");
 const cors = require('cors');
 const userRouter = require('./routers/user.route');
+const stripeRouter = require('./routers/stripe.route');
+const aiRouter = require('./routers/ai.route');
+const wallpaperRouter = require('./routers/wallpaper.route');
 
 const app = express();
 
@@ -26,6 +29,9 @@ app.use(cors({
 
 // Routes
 app.use('/', userRouter);
+app.use('/api/stripe', stripeRouter);
+app.use('/api/ai', aiRouter);
+app.use('/api/wallpaper', wallpaperRouter);
 
 // Health check
 app.get('/', (req, res) => {

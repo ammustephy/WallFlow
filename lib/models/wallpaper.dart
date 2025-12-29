@@ -9,6 +9,7 @@ class Wallpaper {
   final String thumbUrl;
   final String userName;
   final String userProfileImage;
+  final bool isPremium;
 
   Wallpaper({
     required this.id,
@@ -21,9 +22,13 @@ class Wallpaper {
     required this.thumbUrl,
     required this.userName,
     required this.userProfileImage,
+    this.isPremium = false,
   });
 
   factory Wallpaper.fromJson(Map<String, dynamic> json) {
+    // Randomly mark some as premium for demo purposes if not specified
+    final bool premium = json['isPremium'] ?? (json['id'].hashCode % 5 == 0);
+
     return Wallpaper(
       id: json['id'] ?? '',
       description: json['description'] ?? '',
@@ -35,6 +40,7 @@ class Wallpaper {
       thumbUrl: json['urls']['thumb'] ?? '',
       userName: json['user']['name'] ?? '',
       userProfileImage: json['user']['profile_image']['medium'] ?? '',
+      isPremium: premium,
     );
   }
 }

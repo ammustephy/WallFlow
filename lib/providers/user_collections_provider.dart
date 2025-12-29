@@ -6,23 +6,45 @@ import '../models/wallpaper.dart';
 class UserCollectionsProvider with ChangeNotifier {
   List<Wallpaper> _favorites = [];
   List<Wallpaper> _downloads = [];
+  String? _currentUserEmail;
 
   List<Wallpaper> get favorites => _favorites;
   List<Wallpaper> get downloads => _downloads;
 
   UserCollectionsProvider() {
-    _loadCollections();
+    // Initial load will be empty until updateUser is called
   }
+
+  void updateUser(String? email) {
+    if (_currentUserEmail != email) {
+      _currentUserEmail = email;
+      if (_currentUserEmail != null) {
+        _loadCollections();
+      } else {
+        _favorites = [];
+        _downloads = [];
+        notifyListeners();
+      }
+    }
+  }
+
+  String get _favoritesKey => _currentUserEmail != null
+      ? 'favorites_${_currentUserEmail!.toLowerCase()}'
+      : 'favorites';
+
+  String get _downloadsKey => _currentUserEmail != null
+      ? 'downloads_${_currentUserEmail!.toLowerCase()}'
+      : 'downloads';
 
   Future<void> _loadCollections() async {
     final prefs = await SharedPreferences.getInstance();
 
     // Load Favorites
-    final favoriteData = prefs.getStringList('favorites') ?? [];
+    final favoriteData = prefs.getStringList(_favoritesKey) ?? [];
     _favorites = favoriteData.map((item) => _wallpaperFromJson(item)).toList();
 
     // Load Downloads
-    final downloadData = prefs.getStringList('downloads') ?? [];
+    final downloadData = prefs.getStringList(_downloadsKey) ?? [];
     _downloads = downloadData.map((item) => _wallpaperFromJson(item)).toList();
 
     notifyListeners();
@@ -33,7 +55,7 @@ class UserCollectionsProvider with ChangeNotifier {
     final favoriteData = _favorites
         .map((item) => _wallpaperToJson(item))
         .toList();
-    await prefs.setStringList('favorites', favoriteData);
+    await prefs.setStringList(_favoritesKey, favoriteData);
   }
 
   Future<void> _saveDownloads() async {
@@ -41,10 +63,11 @@ class UserCollectionsProvider with ChangeNotifier {
     final downloadData = _downloads
         .map((item) => _wallpaperToJson(item))
         .toList();
-    await prefs.setStringList('downloads', downloadData);
+    await prefs.setStringList(_downloadsKey, downloadData);
   }
 
   void toggleFavorite(Wallpaper wallpaper) {
+    if (_currentUserEmail == null) return;
     final index = _favorites.indexWhere((item) => item.id == wallpaper.id);
     if (index >= 0) {
       _favorites.removeAt(index);
@@ -60,6 +83,7 @@ class UserCollectionsProvider with ChangeNotifier {
   }
 
   void addDownload(Wallpaper wallpaper) {
+    if (_currentUserEmail == null) return;
     if (!_downloads.any((item) => item.id == wallpaper.id)) {
       _downloads.insert(0, wallpaper);
       notifyListeners();

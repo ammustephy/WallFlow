@@ -26,6 +26,25 @@ const userSchema = new Schema({
     },
     profilePicture: {
         type: String
+    },
+    // Subscription fields
+    isPremium: {
+        type: Boolean,
+        default: false
+    },
+    stripeCustomerId: {
+        type: String
+    },
+    stripeSubscriptionId: {
+        type: String
+    },
+    subscriptionStatus: {
+        type: String,
+        enum: ['active', 'canceled', 'past_due', 'trialing', 'inactive'],
+        default: 'inactive'
+    },
+    subscriptionEndDate: {
+        type: Date
     }
 }, { timestamps: true }); // Added timestamps for createdAt/updatedAt
 

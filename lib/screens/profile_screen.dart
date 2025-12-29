@@ -373,9 +373,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onTap: _pickImage,
                       child: CircleAvatar(
                         radius: 60,
-                        backgroundColor: AppTheme.accentColor.withValues(
-                          alpha: 0.1,
-                        ),
+                        backgroundColor: AppTheme.accentColor.withOpacity(0.1),
                         backgroundImage: auth.profileImagePath != null
                             ? FileImage(File(auth.profileImagePath!))
                             : null,
@@ -461,7 +459,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     auth.email ?? '',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.5),
+                      color: Colors.white.withOpacity(0.5),
                     ),
                   ),
                 ],
@@ -507,7 +505,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.of(context).popUntil((route) => route.isFirst);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
+                backgroundColor: Colors.redAccent.withOpacity(0.1),
                 foregroundColor: Colors.redAccent,
                 minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
