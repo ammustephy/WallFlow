@@ -15,8 +15,7 @@ class AiService {
             headers: {'Content-Type': 'application/json'},
             body: json.encode({'email': email, 'prompt': prompt}),
           )
-          .timeout(const Duration(seconds: 60));
-
+          .timeout(const Duration(minutes: 3));
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
@@ -28,6 +27,12 @@ class AiService {
         throw Exception(errorMessage);
       }
     } catch (e) {
+      if (e.toString().contains('TimeoutException')) {
+        print('DEBUG: AiService.generateWallpaper Timeout: $e');
+        throw Exception(
+          'The request timed out. AI generation can take a few minutes. Please try again or check "My Generated Wallpapers" in a moment.',
+        );
+      }
       print('DEBUG: AiService.generateWallpaper Error: $e');
       rethrow;
     }
